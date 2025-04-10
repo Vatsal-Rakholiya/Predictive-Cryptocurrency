@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}My Watchlist - Visionx Ai Beginners{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>My Watchlist</h1>
+            
+            <!-- Currency Selector -->
+            <div class="dropdown">
+                <button class="btn btn-outline-primary dropdown-toggle" type="button" id="currencyDropdown" data-bs-toggle="dropdown">
+                    {{ selected_currency.upper() }}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    {% for currency in available_currencies %}
+                        <li><a class="dropdown-item {% if currency == selected_currency %}active{% endif %}" 
+                               href="{{ url_for('watchlist', currency=currency) }}">{{ currency.upper() }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body p-0">
+                {% if coins %}
+                <div class="table-responsive">
+                    <table class="table watchlist-table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Coin</th>
+                                <th>Price</th>
+                                <th>24h %</th>
+                                <th>7d %</th>
+                                <th>Market Cap</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for coin in coins %}
+                            <tr class="coin-row" data-coin-id="{{ coin.id }}">
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="{{ coin.image.small }}" alt="{{ coin.name }}" class="coin-icon me-2">
+                                        <div>
+                                            <span class="coin-name">{{ coin.name }}</span>
+                                            <span class="coin-symbol text-muted">{{ coin.symbol|upper }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ selected_currency.upper() }} {{ "{:,.4f}".format(coin.market_data.current_price[selected_currency]) }}</td>
+                                <td class="{% if coin.market_data.price_change_percentage_24h > 0 %}text-success{% elif coin.market_data.price_change_percentage_24h < 0 %}text-danger{% endif %}">
+                                    {% if coin.market_data.price_change_percentage_24h > 0 %}
+                                        <i class="fas fa-caret-up me-1"></i>
+                                    {% elif coin.market_data.price_change_percentage_24h < 0 %}
+                                        <i class="fas fa-caret-down me-1"></i>
+                                    {% endif %}
+                                    {{ "{:.2f}%".format(coin.market_data.price_change_percentage_24h) }}
+                                </td>
+                                <td class="{% if coin.market_data.price_change_percentage_7d > 0 %}text-success{% elif coin.market_data.price_change_percentage_7d < 0 %}text-danger{% endif %}">
+                                    {% if coin.market_data.price_change_percentage_7d > 0 %}
+                                        <i class="fas fa-caret-up me-1"></i>
+                                    {% elif coin.market_data.price_change_percentage_7d < 0 %}
+                                        <i class="fas fa-caret-down me-1"></i>
+                                    {% endif %}
+                                    {{ "{:.2f}%".format(coin.market_data.price_change_percentage_7d) }}
+                                </td>
+                                <td>{{ selected_currency.upper() }} {{ "{:,.0f}".format(coin.market_data.market_cap[selected_currency]) }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-danger remove-from-watchlist" data-coin-id="{{ coin.id }}">
+                                        <i class="fas fa-trash me-1"></i> Remove
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center p-5">
+                    <i class="fas fa-star fa-3x mb-3 text-muted"></i>
+                    <h5>Your watchlist is empty</h5>
+                    <p class="text-muted">Add coins to your watchlist to track them here</p>
+                    <a href="{{ url_for('index') }}" class="btn btn-primary mt-2">Browse Market</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/watchlist.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,173 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_content %}
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">User Management</h5>
+        <span class="badge bg-primary">{{ users|length }} Users</span>
+    </div>
+    <div class="card-body">
+        {% if users %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Created</th>
+                            <th>Role</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ user.username }}</td>
+                                <td>{{ user.email }}</td>
+                                <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    {% if user.is_admin %}
+                                        <span class="badge bg-danger">Admin</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">User</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#userDetailsModal{{ user.id }}">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        {% if user.id != session.get('user_id') %}
+                                            <button class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#toggleAdminModal{{ user.id }}">
+                                                {% if user.is_admin %}
+                                                    <i class="fas fa-user-minus"></i>
+                                                {% else %}
+                                                    <i class="fas fa-user-shield"></i>
+                                                {% endif %}
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- User Details Modal -->
+                                    <div class="modal fade" id="userDetailsModal{{ user.id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">User Details</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="text-center mb-3">
+                                                        <div class="avatar bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 100px; height: 100px; font-size: 2.5rem;">
+                                                            {{ user.username|first|upper }}
+                                                        </div>
+                                                        <h4>{{ user.username }}</h4>
+                                                        <p class="text-muted mb-0">{{ user.email }}</p>
+                                                    </div>
+                                                    
+                                                    <div class="list-group list-group-flush">
+                                                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                                            <span>User ID</span>
+                                                            <span class="text-primary">{{ user.id }}</span>
+                                                        </div>
+                                                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                                            <span>Joined</span>
+                                                            <span>{{ user.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                                                        </div>
+                                                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                                            <span>Role</span>
+                                                            <span>
+                                                                {% if user.is_admin %}
+                                                                    <span class="badge bg-danger">Admin</span>
+                                                                {% else %}
+                                                                    <span class="badge bg-secondary">User</span>
+                                                                {% endif %}
+                                                            </span>
+                                                        </div>
+                                                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                                            <span>Preferred Currency</span>
+                                                            <span>{{ user.preferred_currency }}</span>
+                                                        </div>
+                                                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                                            <span>Dark Mode</span>
+                                                            <span>
+                                                                {% if user.dark_mode %}
+                                                                    <span class="badge bg-dark">Enabled</span>
+                                                                {% else %}
+                                                                    <span class="badge bg-light text-dark">Disabled</span>
+                                                                {% endif %}
+                                                            </span>
+                                                        </div>
+                                                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                                            <span>Watchlist Items</span>
+                                                            <span class="badge bg-primary">{{ user.watchlist_items.count() }}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Toggle Admin Modal -->
+                                    {% if user.id != session.get('user_id') %}
+                                        <div class="modal fade" id="toggleAdminModal{{ user.id }}" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">
+                                                            {% if user.is_admin %}
+                                                                Remove Admin Privileges
+                                                            {% else %}
+                                                                Grant Admin Privileges
+                                                            {% endif %}
+                                                        </h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        {% if user.is_admin %}
+                                                            Are you sure you want to remove admin privileges from <strong>{{ user.username }}</strong>?
+                                                            <div class="alert alert-warning mt-3">
+                                                                <i class="fas fa-exclamation-triangle me-1"></i> The user will no longer have access to the admin panel.
+                                                            </div>
+                                                        {% else %}
+                                                            Are you sure you want to grant admin privileges to <strong>{{ user.username }}</strong>?
+                                                            <div class="alert alert-warning mt-3">
+                                                                <i class="fas fa-exclamation-triangle me-1"></i> The user will have full access to the admin panel and can manage all features.
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                        <form action="{{ url_for('admin.toggle_admin', id=user.id) }}" method="post">
+                                                            <button type="submit" class="btn {% if user.is_admin %}btn-danger{% else %}btn-primary{% endif %}">
+                                                                {% if user.is_admin %}
+                                                                    Remove Admin
+                                                                {% else %}
+                                                                    Grant Admin
+                                                                {% endif %}
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-1"></i> No users found.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

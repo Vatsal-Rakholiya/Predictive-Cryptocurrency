@@ -1,0 +1,497 @@
+/* Main Layout */
+:root {
+    --primary-color: #4c6fff;
+    --secondary-color: #6c757d;
+    --success-color: #28a745;
+    --danger-color: #dc3545;
+    --light-bg: #f8f9fa;
+    --dark-bg: #121212;
+    --dark-card: #1e1e1e;
+    --dark-text: #e0e0e0;
+    --dark-secondary: #999999;
+    --border-color: #dee2e6;
+    --chart-grid: rgba(0, 0, 0, 0.05);
+    --chart-line: rgba(76, 111, 255, 0.8);
+    --body-font: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+}
+
+body {
+    font-family: var(--body-font);
+    transition: background-color 0.3s ease, color 0.3s ease;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+/* Dark Mode Styles */
+body.dark-mode {
+    background-color: var(--dark-bg);
+    color: var(--dark-text);
+}
+
+body.dark-mode .card,
+body.dark-mode .modal-content,
+body.dark-mode .dropdown-menu {
+    background-color: var(--dark-card);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .card-header,
+body.dark-mode .modal-header,
+body.dark-mode .modal-footer {
+    background-color: rgba(30, 30, 30, 0.8);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .table {
+    color: var(--dark-text);
+}
+
+body.dark-mode .table-hover tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .text-muted {
+    color: var(--dark-secondary) !important;
+}
+
+body.dark-mode .footer {
+    background-color: var(--dark-card) !important;
+    color: var(--dark-secondary);
+}
+
+body.dark-mode .footer a {
+    color: var(--primary-color);
+}
+
+body.dark-mode .breadcrumb {
+    background-color: transparent;
+}
+
+body.dark-mode .breadcrumb-item.active {
+    color: var(--dark-secondary);
+}
+
+body.dark-mode hr {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .list-group-item {
+    background-color: var(--dark-card);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: var(--dark-text);
+}
+
+/* Navigation & Header */
+.navbar-brand {
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.nav-link {
+    font-weight: 500;
+}
+
+/* Market Stats Card */
+.market-stats-card {
+    background: linear-gradient(135deg, var(--primary-color), #3a57e8);
+    color: white;
+}
+
+.market-stats-card .card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    opacity: 0.8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    opacity: 0.8;
+}
+
+.stat-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+/* Market Table */
+.market-table th,
+.watchlist-table th {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--secondary-color);
+    border-top: none;
+}
+
+.market-table td,
+.watchlist-table td {
+    vertical-align: middle;
+    padding: 1rem 0.75rem;
+}
+
+.coin-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+}
+
+.coin-large-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+}
+
+.coin-name {
+    font-weight: 500;
+    display: block;
+    line-height: 1.2;
+}
+
+.coin-symbol {
+    font-size: 0.75rem;
+    font-weight: 500;
+    display: block;
+    line-height: 1.2;
+}
+
+.coin-row {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.coin-row:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+body.dark-mode .coin-row:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Trending Coins */
+.trending-coin {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.trending-coin:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+    transform: translateY(-2px);
+}
+
+body.dark-mode .trending-coin:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.trend-rank {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--primary-color);
+    min-width: 1.5rem;
+    text-align: center;
+}
+
+/* Coin Details Page */
+.price-large {
+    font-size: 2.25rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.price-change {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.price-stats .row,
+.price-changes .row {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+body.dark-mode .price-stats .row,
+body.dark-mode .price-changes .row {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.price-stats .row:last-child,
+.price-changes .row:last-child {
+    border-bottom: none;
+}
+
+.coin-description {
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.coin-description a {
+    color: var(--primary-color);
+}
+
+/* Search Functionality */
+.search-results-dropdown {
+    position: absolute;
+    z-index: 1000;
+    top: 100%;
+    right: 0;
+    width: 300px;
+    max-height: 400px;
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: none;
+}
+
+body.dark-mode .search-results-dropdown {
+    background: var(--dark-card);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.search-results-dropdown.active {
+    display: block;
+}
+
+.search-result-item {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+body.dark-mode .search-result-item {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.search-result-item:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+body.dark-mode .search-result-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Sparkline Chart */
+.sparkline-chart {
+    height: 40px;
+    width: 120px;
+}
+
+/* Footer */
+.footer {
+    margin-top: auto;
+    border-top: 1px solid var(--border-color);
+}
+
+body.dark-mode .footer {
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .price-large {
+        font-size: 1.75rem;
+    }
+    
+    .price-change {
+        font-size: 1rem;
+    }
+    
+    .coin-name {
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .stat-value {
+        font-size: 1rem;
+    }
+    
+    .market-table th,
+    .watchlist-table th {
+        font-size: 0.75rem;
+    }
+    
+    .market-table td,
+    .watchlist-table td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Chart Customizations */
+.chart-container {
+    position: relative;
+    height: 400px;
+    width: 100%;
+}
+
+.time-period-selector .btn-check:checked + .btn-outline-primary,
+.time-period-selector .btn-check:active + .btn-outline-primary {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+/* Prediction Styling */
+.prediction-card {
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    padding: 8px;
+    font-size: 0.9rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-top: 5px;
+    border-left: 3px solid var(--primary-color);
+}
+
+.dark-mode .prediction-card {
+    background-color: #2a2a2a;
+    border-color: var(--primary-color);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.predict-btn {
+    min-width: 100px;
+}
+
+/* Prediction Indicator Styling */
+.prediction-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 70px;
+    position: relative;
+}
+
+.prediction-indicator-up,
+.prediction-indicator-down,
+.prediction-indicator-unknown {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+.prediction-indicator-up {
+    background-color: rgba(40, 167, 69, 0.1); 
+}
+
+.prediction-indicator-down {
+    background-color: rgba(220, 53, 69, 0.1);
+}
+
+.prediction-indicator-unknown {
+    background-color: rgba(108, 117, 125, 0.1);
+}
+
+.prediction-percent {
+    font-size: 0.8rem;
+    margin-left: 4px;
+}
+
+.prediction-indicator .fa-arrow-up,
+.prediction-indicator .fa-arrow-down,
+.prediction-indicator .fa-minus {
+    font-size: 0.9rem;
+}
+
+/* Animation for loading indicator */
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.prediction-indicator-loading i {
+    animation: spin 1s linear infinite;
+}
+
+/* News Section Styling */
+.news-item {
+    transition: transform 0.2s ease;
+}
+
+.news-item:hover {
+    transform: translateY(-2px);
+}
+
+.news-img {
+    height: 100px;
+    object-fit: cover;
+    width: 100%;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.news-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+    line-height: 1.3;
+}
+
+.news-title a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.news-title a:hover {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.news-source {
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+}
+
+.news-description {
+    color: var(--secondary-color);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 0;
+}
+
+body.dark-mode .news-description {
+    color: var(--dark-secondary);
+}
+
+/* Media query for better mobile display */
+@media (max-width: 767.98px) {
+    .news-img {
+        height: 150px;
+        margin-bottom: 10px;
+    }
+    
+    .news-title {
+        font-size: 1rem;
+    }
+}

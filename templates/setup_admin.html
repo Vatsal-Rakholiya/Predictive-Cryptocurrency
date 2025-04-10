@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Setup Admin - Visionx Ai Beginners{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">Create Admin Account</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Warning:</strong> This page is for initial setup only and should be disabled in production.
+                    </div>
+                    
+                    <form method="post" action="{{ url_for('setup_admin') }}">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Admin Username</label>
+                            <input type="text" class="form-control" id="username" name="username" value="admin" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Admin Email</label>
+                            <input type="email" class="form-control" id="email" name="email" value="admin@example.com" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Admin Password</label>
+                            <input type="password" class="form-control" id="password" name="password" value="adminpass" required>
+                            <div class="form-text">Default password is "adminpass" - please change after login.</div>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger">Create Admin User</button>
+                            <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

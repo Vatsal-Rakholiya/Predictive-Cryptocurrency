@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Error - Visionx Ai Beginners{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card text-center">
+            <div class="card-body p-5">
+                <i class="fas fa-exclamation-triangle fa-4x text-warning mb-4"></i>
+                <h2 class="mb-3">Oops! Something went wrong</h2>
+                
+                {% if 'rate limit' in message.lower() or '429' in message %}
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-info-circle me-2"></i>API Rate Limit Reached</h5>
+                        <p>We're experiencing high traffic and have reached our API rate limits. This happens with free API tiers.</p>
+                        <p>Please try again in a few moments.</p>
+                    </div>
+                {% elif 'not found' in message.lower() or '404' in message %}
+                    <div class="alert alert-warning">
+                        <h5><i class="fas fa-search me-2"></i>Cryptocurrency Not Found</h5>
+                        <p>The cryptocurrency you're looking for couldn't be found.</p>
+                        <p>It may have been delisted or you might have entered an incorrect ID.</p>
+                    </div>
+                {% else %}
+                    <p class="lead mb-4">{{ message }}</p>
+                {% endif %}
+                
+                <div class="mt-4">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary me-2">
+                        <i class="fas fa-home me-2"></i>Return to Homepage
+                    </a>
+                    <a href="javascript:history.back()" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Go Back
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

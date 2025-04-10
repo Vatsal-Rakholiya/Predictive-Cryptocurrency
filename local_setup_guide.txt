@@ -1,0 +1,206 @@
+# Visionx Ai Beginners Cryptocurrency Dashboard Setup Guide
+
+This document provides instructions for downloading, setting up, and running the Visionx Ai Beginners Cryptocurrency Dashboard on your local system.
+
+## System Requirements
+
+- Python 3.11 or higher
+- PostgreSQL database
+- Git (for cloning the repository)
+
+## Step 1: Clone the Repository
+
+```bash
+git clone <repository-url> visionx-crypto-dashboard
+cd visionx-crypto-dashboard
+```
+
+Replace `<repository-url>` with the URL of the repository.
+
+## Step 2: Set Up a Python Virtual Environment
+
+```bash
+# For Windows
+python -m venv venv
+venv\Scripts\activate
+
+# For macOS/Linux
+python3 -m venv venv
+source venv/bin/activate
+```
+
+## Step 3: Install Required Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+If no requirements.txt file exists, create one with the following content:
+
+```
+email-validator>=2.2.0
+flask-caching>=2.3.1
+flask>=3.1.0
+flask-sqlalchemy>=3.1.1
+gunicorn>=23.0.0
+psycopg2-binary>=2.9.10
+routes>=2.5.1
+flask-login==0.6.3
+requests>=2.32.3
+sqlalchemy>=2.0.39
+werkzeug>=3.1.3
+google-cloud-language>=2.17.1
+pandas>=2.2.3
+nltk>=3.9.1
+textblob>=0.19.0
+google-auth>=2.38.0
+sift-stack-py>=0.4.2
+scikit-learn>=1.6.1
+numpy>=2.2.4
+joblib>=1.4.2
+python-pptx>=1.0.2
+trafilatura>=2.0.0
+openai>=1.70.0
+sendgrid>=6.11.0
+```
+
+## Step 4: Download NLTK Data
+
+Run the following Python code to download necessary NLTK data:
+
+```bash
+python -c "import nltk; nltk.download('vader_lexicon'); nltk.download('punkt')"
+```
+
+## Step 5: Set Up PostgreSQL Database
+
+1. Install PostgreSQL if not already installed:
+   - Windows: Download and install from https://www.postgresql.org/download/windows/
+   - macOS: `brew install postgresql`
+   - Linux: `sudo apt install postgresql postgresql-contrib`
+
+2. Create a database and user:
+
+```bash
+sudo -u postgres psql
+
+# In PostgreSQL prompt, run:
+CREATE DATABASE visionx_crypto;
+CREATE USER visionx_user WITH ENCRYPTED PASSWORD 'your_secure_password';
+GRANT ALL PRIVILEGES ON DATABASE visionx_crypto TO visionx_user;
+\q
+```
+
+## Step 6: Configure Environment Variables
+
+Create a `.env` file in the project root directory with the following variables:
+
+```
+# Database Configuration
+DATABASE_URL=postgresql://visionx_user:your_secure_password@localhost:5432/visionx_crypto
+
+# API Keys (Replace with your actual API keys)
+NEWS_API_KEY=your_news_api_key
+SENDGRID_API_KEY=your_sendgrid_api_key
+OPENAI_API_KEY=your_openai_api_key
+
+# Flask Configuration
+FLASK_SECRET_KEY=your_very_secure_secret_key
+```
+
+To obtain the necessary API keys:
+- News API: Register at https://newsapi.org
+- SendGrid: Register at https://sendgrid.com
+- OpenAI: Register at https://platform.openai.com
+
+## Step 7: Initialize and Migrate the Database
+
+```bash
+# Make sure Flask can find your app
+export FLASK_APP=main.py
+
+# Run the app once to create tables
+python main.py
+```
+
+## Step 8: Download CSV Files for Price Prediction
+
+Make sure you have the following CSV files in the `attached_assets` folder:
+- Bitcoin Historical Data.csv
+- Ethereum Historical Data.csv
+- XRP Historical Data.csv
+- Tether USDt Historical Data.csv
+
+## Step 9: Run the Application
+
+```bash
+python main.py
+```
+
+Or if you prefer to use Gunicorn (recommended for production):
+
+```bash
+gunicorn --bind 0.0.0.0:5000 --workers 4 main:app
+```
+
+The application will be available at http://localhost:5000
+
+## Additional Configuration
+
+### Dark/Light Mode
+- The application supports dark and light modes, which can be toggled in the user interface.
+
+### Rate Limiting
+- The CoinGecko API has rate limits. If you encounter rate limiting issues, increase the caching duration in the code.
+
+### Troubleshooting
+
+1. Database Connection Issues:
+   - Verify that PostgreSQL is running: `sudo service postgresql status` (Linux) or check the Services app (Windows)
+   - Confirm the connection string in the .env file matches your PostgreSQL configuration
+
+2. API Rate Limits:
+   - If you encounter rate limit errors, wait a few minutes before trying again
+   - Consider adjusting the cache duration in the code to reduce API calls
+
+3. NLTK Data Download Issues:
+   - If the automated download fails, manually download the required data:
+     ```python
+     import nltk
+     nltk.download('vader_lexicon', download_dir='/path/to/nltk_data')
+     nltk.download('punkt', download_dir='/path/to/nltk_data')
+     ```
+   - Set the NLTK_DATA environment variable: `export NLTK_DATA=/path/to/nltk_data`
+
+4. Missing Dependencies:
+   - If you encounter missing module errors, install them manually:
+     ```bash
+     pip install <module_name>
+     ```
+
+## Feature Overview
+
+1. **Market Overview**
+   - Real-time cryptocurrency market data
+   - Trending coins
+   - Global market statistics
+
+2. **Sentiment Analysis**
+   - News sentiment tracking
+   - Enhanced sentiment analyzer
+   - Historical sentiment trends
+
+3. **Price Prediction**
+   - Machine learning-based price forecasts
+   - Ethereum specialized forecasting
+   - Weekly predictions for major coins
+
+4. **User Features**
+   - Watchlist management
+   - User preferences
+   - Dark/light mode
+
+## Contact and Support
+
+If you encounter any issues or have questions about the setup process, please contact:
+[Vatsal Rakholiya]

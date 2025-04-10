@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block title %}Weekly Price Predictions - Visionx Ai Beginners{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h2 class="mb-0">Weekly Cryptocurrency Price Predictions</h2>
+            <span id="last-updated"></span>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info" role="alert">
+                <i class="fas fa-info-circle me-2"></i>
+                These predictions show the expected percentage change for each cryptocurrency over the next week based on historical data analysis.
+            </div>
+            
+            <div class="row">
+                {% for prediction in predictions %}
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-header d-flex justify-content-between align-items-center 
+                            {% if prediction.direction == 'up' %}bg-success text-white{% else %}bg-danger text-white{% endif %}">
+                            <h5 class="mb-0">{{ prediction.coin_id|title }}</h5>
+                            <span class="badge bg-light text-dark">
+                                {% if prediction.direction == 'up' %}
+                                <i class="fas fa-arrow-up text-success"></i>
+                                {% else %}
+                                <i class="fas fa-arrow-down text-danger"></i>
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="card-body text-center">
+                            <div class="display-4 mb-2 {% if prediction.direction == 'up' %}text-success{% else %}text-danger{% endif %}">
+                                {{ prediction.prediction }}%
+                            </div>
+                            <p class="mb-0">
+                                Expected to go <strong>{{ prediction.direction }}</strong> next week
+                            </p>
+                            {% if prediction.as_of_date %}
+                            <small class="text-muted">As of {{ prediction.as_of_date }}</small>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer">
+                            <div class="d-flex justify-content-center">
+                                <a href="{{ url_for('coin_details', coin_id=prediction.coin_id) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-chart-line me-1"></i> View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="mt-4">
+                <h4>Understanding These Predictions</h4>
+                <p>These weekly price predictions are generated using machine learning models trained on historical cryptocurrency price data. The models analyze various factors including:</p>
+                <ul>
+                    <li>Historical price movements and patterns</li>
+                    <li>Price volatility</li>
+                    <li>Moving averages across different time periods</li>
+                    <li>Volume patterns</li>
+                </ul>
+                <p><strong>Note:</strong> These predictions are for informational purposes only and should not be considered as financial advice. Cryptocurrency markets are highly volatile and past performance is not indicative of future results.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Historical Performance Card -->
+    <div class="card shadow">
+        <div class="card-header bg-light">
+            <h3 class="mb-0">Weekly Prediction Methodology</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>How Our Models Work</h5>
+                    <p>Our weekly prediction models use advanced machine learning techniques including:</p>
+                    <ul>
+                        <li>Random Forest regression for major cryptocurrencies</li>
+                        <li>Ridge regression for more stable cryptocurrencies</li>
+                        <li>Feature engineering from historical price and volume data</li>
+                        <li>Automated model training and validation</li>
+                    </ul>
+                    <p>The models are trained using weekly historical data and updated regularly to maintain accuracy.</p>
+                </div>
+                <div class="col-md-6">
+                    <h5>Important Considerations</h5>
+                    <ul>
+                        <li>Predictions can be affected by unexpected market events</li>
+                        <li>Regulatory announcements can impact prices beyond what models can predict</li>
+                        <li>Market sentiment and macro economic factors may influence actual outcomes</li>
+                        <li>These models work best for established cryptocurrencies with substantial historical data</li>
+                    </ul>
+                    <p>Always do your own research (DYOR) before making investment decisions.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set last updated time
+        const now = new Date();
+        const options = { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        };
+        document.getElementById('last-updated').textContent = 'Updated: ' + now.toLocaleDateString(undefined, options);
+        
+        // Fetch the latest predictions every 12 hours
+        setInterval(function() {
+            fetch('/api/weekly-predictions')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Reload page to show updated predictions
+                        window.location.reload();
+                    }
+                })
+                .catch(error => console.error('Error fetching predictions:', error));
+        }, 12 * 60 * 60 * 1000); // 12 hours in milliseconds
+    });
+</script>
+{% endblock %}

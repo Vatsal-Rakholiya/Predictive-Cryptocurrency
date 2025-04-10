@@ -1,0 +1,253 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_content %}
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Featured Coins Management</h5>
+        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addCoinModal">
+            <i class="fas fa-plus me-1"></i> Add New
+        </button>
+    </div>
+    <div class="card-body">
+        {% if featured_coins %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Coin</th>
+                            <th>Description</th>
+                            <th>Position</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="featuredCoinsTable">
+                        {% for coin in featured_coins %}
+                            <tr data-id="{{ coin.id }}">
+                                <td>
+                                    <i class="fas fa-grip-vertical text-muted me-2 drag-handle"></i>
+                                    {{ loop.index }}
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-2">
+                                            <img src="https://s2.coinmarketcap.com/static/img/coins/64x64/{{ coin.coin_id }}.png" 
+                                                 onerror="this.src='https://via.placeholder.com/32?text={{ coin.display_name|first }}'" 
+                                                 width="32" height="32" class="rounded-circle" alt="{{ coin.display_name }}">
+                                        </div>
+                                        <div>
+                                            <strong>{{ coin.display_name }}</strong><br>
+                                            <small class="text-muted">{{ coin.coin_id }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="text-truncate" style="max-width: 200px;">
+                                        {{ coin.description or 'No description' }}
+                                    </div>
+                                </td>
+                                <td>{{ coin.position }}</td>
+                                <td>
+                                    {% if coin.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#editCoinModal{{ coin.id }}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#deleteCoinModal{{ coin.id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Edit Modal -->
+                                    <div class="modal fade" id="editCoinModal{{ coin.id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Edit Featured Coin</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <form action="{{ url_for('admin.update_featured_coin', id=coin.id) }}" method="post">
+                                                    <div class="modal-body">
+                                                        <div class="mb-3">
+                                                            <label for="display_name{{ coin.id }}" class="form-label">Display Name</label>
+                                                            <input type="text" class="form-control" id="display_name{{ coin.id }}" 
+                                                                   name="display_name" value="{{ coin.display_name }}" required>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label for="description{{ coin.id }}" class="form-label">Description</label>
+                                                            <textarea class="form-control" id="description{{ coin.id }}" 
+                                                                      name="description" rows="3">{{ coin.description }}</textarea>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label for="position{{ coin.id }}" class="form-label">Position</label>
+                                                            <input type="number" class="form-control" id="position{{ coin.id }}" 
+                                                                   name="position" value="{{ coin.position }}">
+                                                        </div>
+                                                        <div class="form-check form-switch">
+                                                            <input class="form-check-input" type="checkbox" id="is_active{{ coin.id }}" 
+                                                                   name="is_active" {% if coin.is_active %}checked{% endif %}>
+                                                            <label class="form-check-label" for="is_active{{ coin.id }}">Active</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Delete Modal -->
+                                    <div class="modal fade" id="deleteCoinModal{{ coin.id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Confirm Delete</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    Are you sure you want to remove <strong>{{ coin.display_name }}</strong> from featured coins?
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <form action="{{ url_for('admin.delete_featured_coin', id=coin.id) }}" method="post">
+                                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-muted mt-3">
+                <i class="fas fa-info-circle me-1"></i> Drag and drop rows to reorder featured coins.
+            </p>
+        {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-1"></i> No featured coins yet. Add some using the "Add New" button.
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Coin Modal -->
+<div class="modal fade" id="addCoinModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Featured Coin</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('admin.add_featured_coin') }}" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="coin_id" class="form-label">Select Coin</label>
+                        <select class="form-select" id="coin_id" name="coin_id" required>
+                            <option value="">-- Select a coin --</option>
+                            {% for coin in available_coins %}
+                                <option value="{{ coin.id }}">{{ coin.name }} ({{ coin.symbol.upper() }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="display_name" class="form-label">Display Name</label>
+                        <input type="text" class="form-control" id="display_name" name="display_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="position" class="form-label">Position (leave blank for auto)</label>
+                        <input type="number" class="form-control" id="position" name="position">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Coin</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Sortable.js for drag and drop functionality -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-fill display name when selecting a coin
+        const coinSelect = document.getElementById('coin_id');
+        const displayNameInput = document.getElementById('display_name');
+        
+        if (coinSelect && displayNameInput) {
+            coinSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption.value) {
+                    displayNameInput.value = selectedOption.text.split(' (')[0];
+                } else {
+                    displayNameInput.value = '';
+                }
+            });
+        }
+        
+        // Initialize sortable table for drag and drop reordering
+        const featuredCoinsTable = document.getElementById('featuredCoinsTable');
+        if (featuredCoinsTable) {
+            const sortable = new Sortable(featuredCoinsTable, {
+                handle: '.drag-handle',
+                animation: 150,
+                onEnd: function() {
+                    // Get the new order
+                    const rows = featuredCoinsTable.querySelectorAll('tr');
+                    const newOrder = Array.from(rows).map(row => parseInt(row.dataset.id));
+                    
+                    // Send the new order to the server
+                    fetch('{{ url_for('admin.reorder_featured_coins') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ order: newOrder }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update the row numbers
+                            rows.forEach((row, index) => {
+                                row.cells[0].innerHTML = `
+                                    <i class="fas fa-grip-vertical text-muted me-2 drag-handle"></i>
+                                    ${index + 1}
+                                `;
+                            });
+                        } else {
+                            console.error('Error reordering:', data.message);
+                            // You could show an error message here
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_content %}
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Dashboard</h5>
+        <span class="badge bg-primary">Admin</span>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <div class="card bg-primary text-white h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-uppercase text-white-50">Users</h6>
+                                <h2 class="mb-0">{{ users_count }}</h2>
+                            </div>
+                            <i class="fas fa-users fa-3x opacity-50"></i>
+                        </div>
+                    </div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <a href="{{ url_for('admin.manage_users') }}" class="text-white-50 small">View Details</a>
+                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-3">
+                <div class="card bg-success text-white h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-uppercase text-white-50">Featured Coins</h6>
+                                <h2 class="mb-0">{{ featured_coins_count }}</h2>
+                            </div>
+                            <i class="fas fa-star fa-3x opacity-50"></i>
+                        </div>
+                    </div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <a href="{{ url_for('admin.featured_coins') }}" class="text-white-50 small">View Details</a>
+                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-3">
+                <div class="card bg-warning text-white h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-uppercase text-white-50">API Status</h6>
+                                <h5 class="mb-0">Active</h5>
+                            </div>
+                            <i class="fas fa-signal fa-3x opacity-50"></i>
+                        </div>
+                    </div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <span class="text-white-50 small">Updated Recently</span>
+                        <div class="small text-white"><i class="fas fa-sync-alt"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-tasks me-1"></i>
+                        Admin Quick Actions
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            <a href="{{ url_for('admin.featured_coins') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Manage Featured Coins</strong>
+                                    <p class="mb-0 text-muted small">Add, remove, or update featured cryptocurrencies</p>
+                                </div>
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                            <a href="{{ url_for('admin.manage_users') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Manage Users</strong>
+                                    <p class="mb-0 text-muted small">View all users and manage admin privileges</p>
+                                </div>
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                            <a href="{{ url_for('index') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Back to Main Site</strong>
+                                    <p class="mb-0 text-muted small">Return to the VisionX dashboard</p>
+                                </div>
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,129 @@
+import nltk
+import logging
+import re
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
+from utils import cache_response
+from api_service import NewsAPI
+
+# Download NLTK resources if not already available
+try:
+    nltk.data.find('vader_lexicon')
+except LookupError:
+    nltk.download('vader_lexicon')
+    nltk.download('punkt')
+
+class SentimentAnalyzer:
+    """Class for analyzing sentiment in crypto news and social media"""
+    
+    def __init__(self):
+        self.sia = SentimentIntensityAnalyzer()
+    
+    def analyze_text(self, text):
+        """
+        Analyze sentiment of a text.
+        
+        Args:
+            text (str): Text to analyze
+            
+        Returns:
+            dict: Sentiment scores
+        """
+        if not text:
+            return {'compound': 0, 'pos': 0, 'neu': 0, 'neg': 0}
+        
+        # Clean text
+        text = self._preprocess_text(text)
+        
+        # Get sentiment scores
+        return self.sia.polarity_scores(text)
+    
+    def _preprocess_text(self, text):
+        """
+        Preprocess text for sentiment analysis.
+        
+        Args:
+            text (str): Text to preprocess
+            
+        Returns:
+            str: Preprocessed text
+        """
+        if not text:
+            return ""
+        
+        # Convert to lowercase
+        text = text.lower()
+        
+        # Remove URLs
+        text = re.sub(r'https?://\S+|www\.\S+', '', text)
+        
+        # Remove HTML tags
+        text = re.sub(r'<.*?>', '', text)
+        
+        # Remove special characters
+        text = re.sub(r'[^\w\s]', '', text)
+        
+        # Remove extra whitespace
+        text = re.sub(r'\s+', ' ', text).strip()
+        
+        return text
+    
+    @cache_response(timeout=3600)  # Cache for 1 hour
+    def analyze_crypto_news(self, coin='bitcoin'):
+        """
+        Analyze sentiment of news articles about a specific cryptocurrency.
+        
+        Args:
+            coin (str): Cryptocurrency name
+            
+        Returns:
+            dict: Sentiment analysis results
+        """
+        # Get news articles
+        articles = NewsAPI.get_crypto_news(query=coin)
+        
+        if not articles:
+            return {
+                'overall_sentiment': 'neutral',
+                'compound_score': 0,
+                'positive': 0,
+                'neutral': 0,
+                'negative': 0,
+                'analyzed_articles': 0
+            }
+        
+        # Analyze sentiment for each article
+        compound_scores = []
+        for article in articles:
+            title = article.get('title', '')
+            description = article.get('description', '')
+            content = article.get('content', '')
+            
+            # Combine available text
+            full_text = ' '.join(filter(None, [title, description, content]))
+            
+            # Get sentiment scores
+            sentiment = self.analyze_text(full_text)
+            compound_scores.append(sentiment['compound'])
+        
+        # Calculate overall sentiment metrics
+        avg_compound = sum(compound_scores) / len(compound_scores) if compound_scores else 0
+        positive_count = sum(1 for score in compound_scores if score > 0.05)
+        neutral_count = sum(1 for score in compound_scores if -0.05 <= score <= 0.05)
+        negative_count = sum(1 for score in compound_scores if score < -0.05)
+        
+        # Determine overall sentiment
+        if avg_compound > 0.05:
+            overall_sentiment = 'positive'
+        elif avg_compound < -0.05:
+            overall_sentiment = 'negative'
+        else:
+            overall_sentiment = 'neutral'
+        
+        return {
+            'overall_sentiment': overall_sentiment,
+            'compound_score': avg_compound,
+            'positive': positive_count / len(articles) if articles else 0,
+            'neutral': neutral_count / len(articles) if articles else 0,
+            'negative': negative_count / len(articles) if articles else 0,
+            'analyzed_articles': len(articles)
+        }

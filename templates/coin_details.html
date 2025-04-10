@@ -1,0 +1,349 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ coin.name }} ({{ coin.symbol|upper }}) - Visionx Ai Beginners{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Market</a></li>
+                <li class="breadcrumb-item active">{{ coin.name }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="d-flex align-items-center">
+            <img src="{{ coin.image.large }}" alt="{{ coin.name }}" class="coin-large-icon me-3">
+            <div>
+                <h1 class="mb-0">{{ coin.name }} <span class="text-muted">({{ coin.symbol|upper }})</span></h1>
+                <div class="d-flex align-items-center mt-2">
+                    <span class="badge bg-secondary me-2">Rank #{{ coin.market_cap_rank }}</span>
+                    {% if coin.categories and coin.categories|length > 0 %}
+                        <span class="badge bg-info me-2">{{ coin.categories[0] }}</span>
+                    {% endif %}
+                    
+                    <!-- Watchlist Button -->
+                    {% if session.get('user_id') %}
+                        <button id="watchlist-btn" class="btn btn-sm {% if in_watchlist %}btn-danger{% else %}btn-outline-primary{% endif %}" 
+                                data-coin-id="{{ coin.id }}" data-action="{% if in_watchlist %}remove{% else %}add{% endif %}">
+                            <i class="fas {% if in_watchlist %}fa-star{% else %}fa-star{% endif %} me-1"></i>
+                            {% if in_watchlist %}Remove from Watchlist{% else %}Add to Watchlist{% endif %}
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 text-md-end">
+        <!-- Currency Selector -->
+        <div class="dropdown d-inline-block">
+            <button class="btn btn-outline-primary dropdown-toggle" type="button" id="currencyDropdown" data-bs-toggle="dropdown">
+                {{ selected_currency.upper() }}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                {% for currency in available_currencies %}
+                    <li><a class="dropdown-item {% if currency == selected_currency %}active{% endif %}" 
+                        href="{{ url_for('coin_details', coin_id=coin.id, currency=currency, time=time_period) }}">
+                        {{ currency.upper() }}
+                    </a></li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Left Column: Price Info -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="price-large mb-2">
+                    {{ selected_currency.upper() }} {{ "{:,.4f}".format(coin.market_data.current_price[selected_currency]) }}
+                </h2>
+                
+                <div class="price-change {% if coin.market_data.price_change_percentage_24h > 0 %}text-success{% elif coin.market_data.price_change_percentage_24h < 0 %}text-danger{% endif %} mb-3">
+                    <span>
+                        {% if coin.market_data.price_change_percentage_24h > 0 %}+{% endif %}
+                        {{ "{:.2f}".format(coin.market_data.price_change_percentage_24h) }}% (24h)
+                    </span>
+                </div>
+                
+                <div class="price-stats">
+                    <div class="row mb-2">
+                        <div class="col-6 text-muted">Market Cap</div>
+                        <div class="col-6 text-end">{{ selected_currency.upper() }} {{ "{:,.0f}".format(coin.market_data.market_cap[selected_currency]) }}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6 text-muted">24h Volume</div>
+                        <div class="col-6 text-end">{{ selected_currency.upper() }} {{ "{:,.0f}".format(coin.market_data.total_volume[selected_currency]) }}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6 text-muted">Circulating Supply</div>
+                        <div class="col-6 text-end">{{ "{:,.0f}".format(coin.market_data.circulating_supply) }} {{ coin.symbol|upper }}</div>
+                    </div>
+                    {% if coin.market_data.max_supply %}
+                    <div class="row mb-2">
+                        <div class="col-6 text-muted">Max Supply</div>
+                        <div class="col-6 text-end">{{ "{:,.0f}".format(coin.market_data.max_supply) }} {{ coin.symbol|upper }}</div>
+                    </div>
+                    {% endif %}
+                    <div class="row mb-2">
+                        <div class="col-6 text-muted">All-Time High</div>
+                        <div class="col-6 text-end">
+                            {{ selected_currency.upper() }} {{ "{:,.4f}".format(coin.market_data.ath[selected_currency]) }}
+                            <div class="small {% if coin.market_data.ath_change_percentage[selected_currency] > 0 %}text-success{% else %}text-danger{% endif %}">
+                                {{ "{:.2f}%".format(coin.market_data.ath_change_percentage[selected_currency]) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Price Ranges -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">Price Ranges (24h)</h5>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Low</span>
+                        <span class="text-muted">High</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        {% set low = coin.market_data.low_24h[selected_currency] %}
+                        {% set high = coin.market_data.high_24h[selected_currency] %}
+                        {% set current = coin.market_data.current_price[selected_currency] %}
+                        {% set percent = ((current - low) / (high - low)) * 100 if (high - low) > 0 else 50 %}
+                        <div class="progress-bar" role="progressbar" style="width: {{ percent }}%"></div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-1">
+                        <span>{{ selected_currency.upper() }} {{ "{:,.4f}".format(low) }}</span>
+                        <span>{{ selected_currency.upper() }} {{ "{:,.4f}".format(high) }}</span>
+                    </div>
+                </div>
+                
+                <h5 class="card-title mt-4">Price Change</h5>
+                <div class="price-changes">
+                    <div class="row mb-2">
+                        <div class="col-4 text-muted">1h</div>
+                        <div class="col-8 text-end {% if coin.market_data.price_change_percentage_1h_in_currency[selected_currency] > 0 %}text-success{% elif coin.market_data.price_change_percentage_1h_in_currency[selected_currency] < 0 %}text-danger{% endif %}">
+                            {% if coin.market_data.price_change_percentage_1h_in_currency[selected_currency] > 0 %}+{% endif %}
+                            {{ "{:.2f}%".format(coin.market_data.price_change_percentage_1h_in_currency[selected_currency]) }}
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4 text-muted">24h</div>
+                        <div class="col-8 text-end {% if coin.market_data.price_change_percentage_24h > 0 %}text-success{% elif coin.market_data.price_change_percentage_24h < 0 %}text-danger{% endif %}">
+                            {% if coin.market_data.price_change_percentage_24h > 0 %}+{% endif %}
+                            {{ "{:.2f}%".format(coin.market_data.price_change_percentage_24h) }}
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4 text-muted">7d</div>
+                        <div class="col-8 text-end {% if coin.market_data.price_change_percentage_7d > 0 %}text-success{% elif coin.market_data.price_change_percentage_7d < 0 %}text-danger{% endif %}">
+                            {% if coin.market_data.price_change_percentage_7d > 0 %}+{% endif %}
+                            {{ "{:.2f}%".format(coin.market_data.price_change_percentage_7d) }}
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4 text-muted">30d</div>
+                        <div class="col-8 text-end {% if coin.market_data.price_change_percentage_30d > 0 %}text-success{% elif coin.market_data.price_change_percentage_30d < 0 %}text-danger{% endif %}">
+                            {% if coin.market_data.price_change_percentage_30d > 0 %}+{% endif %}
+                            {{ "{:.2f}%".format(coin.market_data.price_change_percentage_30d) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Column: Price Chart -->
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="price-chart-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link {% if time_period == '1' %}active{% endif %}" 
+                           href="{{ url_for('coin_details', coin_id=coin.id, currency=selected_currency, time='1') }}">
+                           24h
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if time_period == '7' %}active{% endif %}" 
+                           href="{{ url_for('coin_details', coin_id=coin.id, currency=selected_currency, time='7') }}">
+                           7d
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if time_period == '30' or not time_period %}active{% endif %}" 
+                           href="{{ url_for('coin_details', coin_id=coin.id, currency=selected_currency, time='30') }}">
+                           30d
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if time_period == '90' %}active{% endif %}" 
+                           href="{{ url_for('coin_details', coin_id=coin.id, currency=selected_currency, time='90') }}">
+                           90d
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if time_period == '365' %}active{% endif %}" 
+                           href="{{ url_for('coin_details', coin_id=coin.id, currency=selected_currency, time='365') }}">
+                           1y
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if time_period == 'max' %}active{% endif %}" 
+                           href="{{ url_for('coin_details', coin_id=coin.id, currency=selected_currency, time='max') }}">
+                           Max
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <canvas id="priceChart" height="400"></canvas>
+            </div>
+        </div>
+        
+        <!-- Description and Info -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">About {{ coin.name }}</h5>
+            </div>
+            <div class="card-body">
+                {% if coin.description.en %}
+                    <div class="coin-description mb-4">
+                        {{ coin.description.en | safe }}
+                    </div>
+                {% else %}
+                    <p>No description available.</p>
+                {% endif %}
+                
+                <!-- Links -->
+                <h5>Links</h5>
+                <div class="row">
+                    {% if coin.links.homepage and coin.links.homepage[0] %}
+                    <div class="col-md-4 mb-2">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-globe me-2"></i>
+                            <a href="{{ coin.links.homepage[0] }}" target="_blank" rel="noopener noreferrer">Website</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if coin.links.blockchain_site and coin.links.blockchain_site[0] %}
+                    <div class="col-md-4 mb-2">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-link me-2"></i>
+                            <a href="{{ coin.links.blockchain_site[0] }}" target="_blank" rel="noopener noreferrer">Explorer</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if coin.links.subreddit_url and coin.links.subreddit_url != "" %}
+                    <div class="col-md-4 mb-2">
+                        <div class="d-flex align-items-center">
+                            <i class="fab fa-reddit me-2"></i>
+                            <a href="{{ coin.links.subreddit_url }}" target="_blank" rel="noopener noreferrer">Reddit</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if coin.links.twitter_screen_name and coin.links.twitter_screen_name != "" %}
+                    <div class="col-md-4 mb-2">
+                        <div class="d-flex align-items-center">
+                            <i class="fab fa-twitter me-2"></i>
+                            <a href="https://twitter.com/{{ coin.links.twitter_screen_name }}" target="_blank" rel="noopener noreferrer">Twitter</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if coin.links.github_repos and coin.links.github_repos|length > 0 and coin.links.github_repos[0] %}
+                    <div class="col-md-4 mb-2">
+                        <div class="d-flex align-items-center">
+                            <i class="fab fa-github me-2"></i>
+                            <a href="{{ coin.links.repos_url.github[0] }}" target="_blank" rel="noopener noreferrer">GitHub</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Trending News Section -->
+        <div class="card mt-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Trending {{ coin.name }} News</h5>
+            </div>
+            <div class="card-body">
+                {% if coin_news and coin_news|length > 0 %}
+                    <div class="coin-news">
+                        {% for article in coin_news %}
+                            <div class="news-item mb-4">
+                                <div class="row">
+                                    {% if article.urlToImage %}
+                                        <div class="col-md-3 mb-2 mb-md-0">
+                                            <img src="{{ article.urlToImage }}" alt="{{ article.title }}" class="img-fluid rounded news-img">
+                                        </div>
+                                        <div class="col-md-9">
+                                    {% else %}
+                                        <div class="col-12">
+                                    {% endif %}
+                                        <h5 class="news-title">
+                                            <a href="{{ article.url }}" target="_blank" rel="noopener noreferrer">
+                                                {{ article.title }}
+                                            </a>
+                                        </h5>
+                                        
+                                        <div class="news-source mb-1">
+                                            <small class="text-muted">
+                                                {{ article.source.name }} • 
+                                                {% if article.formatted_date %}
+                                                    {{ article.formatted_date }}
+                                                {% elif article.publishedAt %}
+                                                    {{ article.publishedAt }}
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                        
+                                        <p class="news-description">
+                                            {% if article.description %}
+                                                {{ article.description|truncate(150) }}
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% if not loop.last %}
+                                <hr>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-newspaper fa-3x mb-3 text-muted"></i>
+                        <h5>No Recent News</h5>
+                        <p class="text-muted">We couldn't find any recent news articles about {{ coin.name }}.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Chart data
+    const chartData = {{ chart_data|tojson }};
+    const coinId = "{{ coin.id }}";
+    const selectedCurrency = "{{ selected_currency }}";
+</script>
+<script src="{{ url_for('static', filename='js/coin_details.js') }}"></script>
+{% endblock %}

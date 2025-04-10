@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Visionx Ai Beginners{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    {% block head_content %}{% endblock %}
+</head>
+<body class="{% if session.get('dark_mode') or (current_user is defined and current_user.dark_mode) %}dark-mode{% endif %}">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-chart-line me-2"></i>Visionx Ai Beginners
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">Market Overview</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="sentimentDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Sentiment Analysis
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="sentimentDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('sentiment_analysis') }}">Market Sentiment</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('enhanced_sentiment_page') }}">
+                                <i class="fas fa-brain me-1"></i>Enhanced Analyzer
+                            </a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="predictionDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Price Prediction
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="predictionDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('price_prediction') }}">All Coins</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('ethereum_forecast_page') }}">
+                                <i class="fab fa-ethereum me-1"></i>Ethereum Forecast
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('weekly_predictions') }}">
+                                <i class="fas fa-calendar-week me-1"></i>Weekly Predictions
+                            </a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('upcoming_ico') }}">
+                            <i class="fas fa-rocket me-1"></i>ICOs & Airdrops
+                        </a>
+                    </li>
+                    {% if session.get('user_id') %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('watchlist') }}">My Watchlist</a>
+                    </li>
+                    <!-- Newsletter feature removed as per user request -->
+                    {% endif %}
+                </ul>
+                
+                <!-- Search Form -->
+                <form class="d-flex me-2">
+                    <div class="input-group">
+                        <input type="text" id="search-input" class="form-control" placeholder="Search coins...">
+                        <button class="btn btn-light" type="button" id="search-button">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </form>
+                
+                <div id="search-results" class="search-results-dropdown"></div>
+                
+                <!-- Theme Toggle -->
+                <button id="theme-toggle" class="btn btn-outline-light me-2">
+                    <i class="fas fa-moon"></i>
+                </button>
+                
+                <!-- User Menu -->
+                <ul class="navbar-nav">
+                    {% if session.get('user_id') %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user me-1"></i>{{ session.get('username') }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{{ url_for('settings') }}">Settings</a></li>
+                            {% if session.get('user_id') %}
+                                {% set user = get_user_by_id(session.get('user_id')) %}
+                                {% if user and user.is_admin %}
+                                    <li><a class="dropdown-item" href="{{ url_for('admin.admin_dashboard') }}">
+                                        <i class="fas fa-lock me-1"></i>Admin Panel
+                                    </a></li>
+                                {% endif %}
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('register') }}">Register</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Flash Messages -->
+    <div class="container mt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+    
+    <main class="container py-4">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <footer class="footer mt-auto py-3 bg-light">
+        <div class="container text-center">
+            <span class="text-muted">Visionx Ai Beginners</span>
+        </div>
+    </footer>
+    
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

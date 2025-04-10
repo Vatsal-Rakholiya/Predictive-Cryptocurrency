@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Ethereum Price Forecast | Visionx Ai Beginners{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0">Ethereum Price Forecast</h2>
+                </div>
+                <div class="card-body">
+                    <div id="loading" class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-3">Analyzing historical data and generating forecast...</p>
+                    </div>
+                    
+                    <div id="forecast-container" class="py-3" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="forecast-details p-4 border rounded bg-light">
+                                    <h3 id="forecast-title" class="h5 mb-4">Ethereum Price Forecast</h3>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <p class="text-muted mb-1">Current Price</p>
+                                            <h4 id="current-price" class="mb-3">-</h4>
+                                        </div>
+                                        <div class="col-6">
+                                            <p class="text-muted mb-1">Next Day Prediction</p>
+                                            <h4 id="next-price" class="mb-3">-</h4>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="forecast-indicator my-4 text-center p-3 rounded">
+                                        <span class="text-muted">Price Movement:</span>
+                                        <h2 id="forecast-percent" class="display-6 mb-0 mt-2">-</h2>
+                                    </div>
+                                    
+                                    <div class="text-center mt-4">
+                                        <small class="text-muted">Based on historical data analysis. Not financial advice.</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="analysis-info p-4">
+                                    <h3 class="h5 mb-3">About This Forecast</h3>
+                                    <p>This Ethereum price forecast is based on historical price data analyzed using machine learning techniques. The model is trained on CSV data to avoid API rate limiting issues.</p>
+                                    
+                                    <h4 class="h6 mt-4">Forecasting Method</h4>
+                                    <ul>
+                                        <li>Uses 7-day sequences of historical prices</li>
+                                        <li>Analyzes price patterns and market trends</li>
+                                        <li>Considers volatility and price movements</li>
+                                        <li>Updates daily with new historical data</li>
+                                    </ul>
+                                    
+                                    <div class="alert alert-warning mt-4">
+                                        <strong>Disclaimer:</strong> Cryptocurrency prices are highly volatile. This forecast is for informational purposes only and should not be considered financial advice.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="error-container" class="alert alert-danger" style="display: none;">
+                        <strong>Error:</strong> <span id="error-message"></span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('price_prediction') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-chart-line mr-1"></i> View All Predictions
+                    </a>
+                    <a href="{{ url_for('coin_details', coin_id='ethereum') }}" class="btn btn-outline-secondary">
+                        <i class="fab fa-ethereum mr-1"></i> Ethereum Details
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const loadingEl = document.getElementById('loading');
+    const forecastEl = document.getElementById('forecast-container');
+    const errorEl = document.getElementById('error-container');
+    const errorMsgEl = document.getElementById('error-message');
+    
+    // Elements to update
+    const currentPriceEl = document.getElementById('current-price');
+    const nextPriceEl = document.getElementById('next-price');
+    const forecastPercentEl = document.getElementById('forecast-percent');
+    
+    // Get user's preferred currency
+    const currencyDropdown = document.getElementById('currencyDropdown');
+    const currency = currencyDropdown ? currencyDropdown.textContent.trim().toLowerCase() : 'usd';
+    
+    // Fetch the forecast
+    fetch(`/api/eth-forecast?currency=${currency}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to get Ethereum forecast');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                throw new Error(data.message || 'Unable to generate forecast');
+            }
+            
+            // Update UI with forecast data
+            currentPriceEl.textContent = `${data.current_price} ${data.currency}`;
+            nextPriceEl.textContent = `${data.next_day_price} ${data.currency}`;
+            
+            // Set forecast percentage with appropriate color
+            forecastPercentEl.textContent = data.forecast;
+            if (data.direction === 'increase') {
+                forecastPercentEl.classList.add('text-success');
+            } else {
+                forecastPercentEl.classList.add('text-danger');
+            }
+            
+            // Hide loading, show forecast
+            loadingEl.style.display = 'none';
+            forecastEl.style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Error fetching Ethereum forecast:', error);
+            errorMsgEl.textContent = error.message || 'Failed to load forecast data.';
+            loadingEl.style.display = 'none';
+            errorEl.style.display = 'block';
+        });
+});
+</script>
+{% endblock %}

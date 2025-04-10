@@ -1,0 +1,354 @@
+{% extends 'base.html' %}
+
+{% block title %}Price Prediction - {{ coin_details.name }} - Visionx Ai Beginners{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>Price Prediction</h1>
+            <p class="lead">Machine learning-based cryptocurrency price predictions</p>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Select Cryptocurrency</h5>
+                </div>
+                <div class="card-body">
+                    <form id="coin-select-form" method="get">
+                        <div class="mb-3">
+                            <label for="coin-select" class="form-label">Cryptocurrency</label>
+                            <select class="form-select" id="coin-select" name="coin">
+                                {% for coin in top_coins %}
+                                <option value="{{ coin.id }}" {% if coin.id == coin_details.id %}selected{% endif %}>
+                                    {{ coin.name }} ({{ coin.symbol.upper() }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="hours-select" class="form-label">Prediction Hours</label>
+                            <select class="form-select" id="hours-select" name="hours">
+                                <option value="6" {% if hours == 6 %}selected{% endif %}>6 hours</option>
+                                <option value="12" {% if hours == 12 %}selected{% endif %}>12 hours</option>
+                                <option value="24" {% if hours == 24 %}selected{% endif %}>24 hours</option>
+                                <option value="48" {% if hours == 48 %}selected{% endif %}>48 hours</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Current Price</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <img src="{{ coin_details.image.small }}" alt="{{ coin_details.name }}" class="me-2" style="width: 32px; height: 32px;">
+                        <div>
+                            <h4 class="mb-0">{{ coin_details.name }} ({{ coin_details.symbol.upper() }})</h4>
+                            <p class="text-muted mb-0">Rank #{{ coin_details.market_cap_rank }}</p>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <h2 id="current-price">${{ '%0.2f'|format(coin_details.market_data.current_price.usd|float) }}</h2>
+                        <p class="text-{% if coin_details.market_data.price_change_percentage_24h >= 0 %}success{% else %}danger{% endif %}">
+                            <i class="bi bi-arrow-{% if coin_details.market_data.price_change_percentage_24h >= 0 %}up{% else %}down{% endif %}"></i>
+                            {{ '%0.2f'|format(coin_details.market_data.price_change_percentage_24h|float) }}% (24h)
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Weekly Predictions</h5>
+                </div>
+                <div class="card-body">
+                    <p>See our weekly price change predictions for major cryptocurrencies based on comprehensive analysis of historical data.</p>
+                    <a href="{{ url_for('weekly_predictions') }}" class="btn btn-primary">
+                        <i class="fas fa-calendar-week me-1"></i> View Weekly Predictions
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Price Prediction Chart</h5>
+                </div>
+                <div class="card-body">
+                    <div id="chart-loading" class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Training prediction model...</p>
+                    </div>
+                    <div id="chart-container" style="width: 100%; height: 400px; display: none;"></div>
+                    <div id="chart-error" class="alert alert-danger mt-3" style="display: none;"></div>
+                    <div class="mt-3">
+                        <small class="text-muted">Note: Price predictions use machine learning based on historical data and are for informational purposes only. Due to API rate limits, prediction data is cached and updated hourly.</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Price Prediction Analysis</h5>
+                </div>
+                <div class="card-body">
+                    <div id="prediction-loading" class="text-center py-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <div id="prediction-content" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Predicted Next Hour</h5>
+                                        <h3 id="next-hour-price">--</h3>
+                                        <p id="next-hour-change" class="mb-0"></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Predicted 24h High</h5>
+                                        <h3 id="max-price">--</h3>
+                                        <p id="max-change" class="mb-0"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-muted mt-3">
+                            <small>
+                                Disclaimer: These predictions are based on historical data analysis and should not be
+                                used as the sole basis for investment decisions. Cryptocurrency markets are highly
+                                volatile and unpredictable.
+                            </small>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const coinId = '{{ coin_details.id }}';
+        const hours = {{ hours }};
+        let predictionChart;
+        
+        // Form submission
+        const form = document.getElementById('coin-select-form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const selectedCoin = document.getElementById('coin-select').value;
+                const selectedHours = document.getElementById('hours-select').value;
+                window.location.href = `/prediction?coin=${selectedCoin}&hours=${selectedHours}`;
+            });
+        }
+        
+        // Fetch prediction data
+        fetchPredictionData();
+        
+        function fetchPredictionData() {
+            showLoading();
+            
+            fetch(`/api/prediction/${coinId}?hours=${hours}`)
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(error => {
+                            throw new Error(error.message || 'Failed to fetch prediction data');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    hideLoading();
+                    renderPredictionChart(data);
+                    updatePredictionStats(data);
+                })
+                .catch(error => {
+                    hideLoading();
+                    showError(error.message);
+                });
+        }
+        
+        function renderPredictionChart(data) {
+            const chartContainer = document.getElementById('chart-container');
+            chartContainer.style.display = 'block';
+            
+            // Prepare data for Chart.js
+            const labels = [];
+            const historicalData = [];
+            const predictedData = [];
+            
+            // Process historical data
+            data.historical.forEach(item => {
+                const date = new Date(item.timestamp);
+                labels.push(formatDateTime(date));
+                historicalData.push(item.price);
+                predictedData.push(null);
+            });
+            
+            // Process predicted data
+            const lastHistoricalIndex = labels.length - 1;
+            data.predictions.forEach((item, index) => {
+                const date = new Date(item.timestamp);
+                labels.push(formatDateTime(date));
+                historicalData.push(null);
+                
+                if (index === 0) {
+                    // Connect historical and predicted data
+                    predictedData[lastHistoricalIndex] = data.historical[lastHistoricalIndex].price;
+                }
+                
+                predictedData.push(item.price);
+            });
+            
+            // Create the chart
+            const ctx = document.createElement('canvas');
+            chartContainer.innerHTML = '';
+            chartContainer.appendChild(ctx);
+            
+            predictionChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Historical Price',
+                            data: historicalData,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Predicted Price',
+                            data: predictedData,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            borderDash: [5, 5],
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Price (USD)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toFixed(2);
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': $' + context.parsed.y.toFixed(2);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updatePredictionStats(data) {
+            const predictionContent = document.getElementById('prediction-content');
+            predictionContent.style.display = 'block';
+            
+            const currentPrice = data.current_price;
+            const nextHourPrice = data.predictions[0]?.price || 0;
+            
+            // Calculate max predicted price
+            let maxPrice = nextHourPrice;
+            data.predictions.forEach(prediction => {
+                if (prediction.price > maxPrice) {
+                    maxPrice = prediction.price;
+                }
+            });
+            
+            // Calculate percent changes
+            const nextHourChange = ((nextHourPrice - currentPrice) / currentPrice) * 100;
+            const maxChange = ((maxPrice - currentPrice) / currentPrice) * 100;
+            
+            // Update the UI
+            document.getElementById('next-hour-price').textContent = '$' + nextHourPrice.toFixed(2);
+            document.getElementById('max-price').textContent = '$' + maxPrice.toFixed(2);
+            
+            const nextHourChangeElement = document.getElementById('next-hour-change');
+            nextHourChangeElement.textContent = nextHourChange.toFixed(2) + '%';
+            nextHourChangeElement.className = nextHourChange >= 0 ? 'text-success' : 'text-danger';
+            nextHourChangeElement.innerHTML = `<i class="bi bi-arrow-${nextHourChange >= 0 ? 'up' : 'down'}"></i> ${nextHourChange.toFixed(2)}%`;
+            
+            const maxChangeElement = document.getElementById('max-change');
+            maxChangeElement.textContent = maxChange.toFixed(2) + '%';
+            maxChangeElement.className = maxChange >= 0 ? 'text-success' : 'text-danger';
+            maxChangeElement.innerHTML = `<i class="bi bi-arrow-${maxChange >= 0 ? 'up' : 'down'}"></i> ${maxChange.toFixed(2)}%`;
+        }
+        
+        function formatDateTime(date) {
+            return date.toLocaleString([], {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        function showLoading() {
+            document.getElementById('chart-loading').style.display = 'block';
+            document.getElementById('chart-container').style.display = 'none';
+            document.getElementById('chart-error').style.display = 'none';
+            document.getElementById('prediction-loading').style.display = 'block';
+            document.getElementById('prediction-content').style.display = 'none';
+        }
+        
+        function hideLoading() {
+            document.getElementById('chart-loading').style.display = 'none';
+            document.getElementById('prediction-loading').style.display = 'none';
+        }
+        
+        function showError(message) {
+            const errorElement = document.getElementById('chart-error');
+            errorElement.innerHTML = `<strong>Error:</strong> ${message} <br><span class="small">This may be due to API rate limits. Try again in a few minutes or select a different cryptocurrency.</span>`;
+            errorElement.style.display = 'block';
+        }
+    });
+</script>
+{% endblock %}

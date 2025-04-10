@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}Market Sentiment Analysis{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h1>Cryptocurrency Market Sentiment</h1>
+    <p class="text-muted">Analyze the sentiment of crypto news to gauge market mood</p>
+</div>
+
+<div class="row">
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Select Cryptocurrency</h5>
+            </div>
+            <div class="card-body">
+                <form id="sentiment-form" method="GET" action="{{ url_for('sentiment_analysis') }}">
+                    <div class="mb-3">
+                        <label for="coin" class="form-label">Cryptocurrency</label>
+                        <select class="form-select" id="coin" name="coin">
+                            <option value="bitcoin" {% if coin == 'bitcoin' %}selected{% endif %}>Bitcoin (BTC)</option>
+                            <option value="ethereum" {% if coin == 'ethereum' %}selected{% endif %}>Ethereum (ETH)</option>
+                            <option value="ripple" {% if coin == 'ripple' %}selected{% endif %}>Ripple (XRP)</option>
+                            <option value="cardano" {% if coin == 'cardano' %}selected{% endif %}>Cardano (ADA)</option>
+                            <option value="solana" {% if coin == 'solana' %}selected{% endif %}>Solana (SOL)</option>
+                            <option value="dogecoin" {% if coin == 'dogecoin' %}selected{% endif %}>Dogecoin (DOGE)</option>
+                            <option value="polkadot" {% if coin == 'polkadot' %}selected{% endif %}>Polkadot (DOT)</option>
+                        </select>
+                        <div class="form-text">Choose a cryptocurrency to analyze sentiment from news articles.</div>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Analyze Sentiment</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">About Sentiment Analysis</h5>
+            </div>
+            <div class="card-body">
+                <p>Sentiment analysis uses natural language processing to identify and extract subjective information from text sources.</p>
+                
+                <h6 class="mt-3">How It Works</h6>
+                <p>Our algorithm:</p>
+                <ol>
+                    <li>Collects recent news articles about the selected cryptocurrency</li>
+                    <li>Analyzes the text content for positive, negative, and neutral sentiment</li>
+                    <li>Calculates an overall sentiment score and market mood</li>
+                </ol>
+                
+                <h6 class="mt-3">Sentiment Scale</h6>
+                <ul class="list-unstyled">
+                    <li><span class="badge bg-success me-2">Positive</span> Compound score > 0.05</li>
+                    <li><span class="badge bg-warning text-dark me-2">Neutral</span> Compound score between -0.05 and 0.05</li>
+                    <li><span class="badge bg-danger me-2">Negative</span> Compound score < -0.05</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-8">
+        <div id="sentiment-loading" class="d-none">
+            <div class="text-center p-5">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h4>Analyzing Sentiment Data</h4>
+                <p class="text-muted">Please wait while we analyze recent news for {{ coin }}...</p>
+            </div>
+        </div>
+        
+        <div id="sentiment-error" class="d-none">
+            <div class="card mb-4">
+                <div class="card-body text-center p-5">
+                    <div class="mb-4 text-danger">
+                        <i class="fas fa-exclamation-circle fa-4x"></i>
+                    </div>
+                    <h3>Unable to Retrieve Sentiment Data</h3>
+                    <p class="text-muted">We encountered a problem while analyzing sentiment for this cryptocurrency.</p>
+                    <div class="alert alert-warning mt-3">
+                        <p class="mb-0">This could be due to API limits or lack of recent news articles. Please try again later or select a different cryptocurrency.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="sentiment-no-data" class="d-none">
+            <div class="card mb-4">
+                <div class="card-body text-center p-5">
+                    <div class="mb-4 text-muted">
+                        <i class="fas fa-search fa-4x"></i>
+                    </div>
+                    <h3>No Sentiment Data Available</h3>
+                    <p class="text-muted">There isn't enough recent news about this cryptocurrency to perform sentiment analysis.</p>
+                    <div class="mt-4">
+                        <a href="{{ url_for('sentiment_analysis', coin='bitcoin') }}" class="btn btn-primary me-2">Try Bitcoin</a>
+                        <a href="{{ url_for('sentiment_analysis', coin='ethereum') }}" class="btn btn-outline-primary">Try Ethereum</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="sentiment-results" class="d-none">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        Sentiment Analysis Results for <span id="coin-name" class="text-capitalize">{{ coin }}</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div id="sentiment-summary" class="text-center p-4 rounded">
+                                <h2 class="mb-3">Overall Sentiment</h2>
+                                <div id="sentiment-icon" class="display-4 mb-3">
+                                    <i class="fas"></i>
+                                </div>
+                                <h3 id="sentiment-category" class="text-capitalize mb-1"></h3>
+                                <p class="text-muted">Compound Score: <span id="sentiment-score"></span></p>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <h5 class="mb-3">Sentiment Distribution</h5>
+                            <div style="height: 200px;">
+                                <canvas id="sentimentChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-2">
+                        <div class="col-md-12">
+                            <div id="market-interpretation" class="alert">
+                                <h5 class="alert-heading">Market Mood Interpretation</h5>
+                                <p id="market-interpretation-text"></p>
+                                <hr>
+                                <p class="mb-0">Analysis based on <span id="article-count">0</span> recent news articles.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- News Mentions Section -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Recent News Mentions</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div id="news-mentions-container">
+                        <div class="list-group list-group-flush" id="news-mentions">
+                            <!-- News mentions will be inserted here -->
+                        </div>
+                    </div>
+                    <div id="no-mentions" class="text-center p-4 d-none">
+                        <p class="text-muted mb-0">No significant news mentions found.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Historical Sentiment Trend -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Sentiment Trend (Last 7 Days)</h5>
+                </div>
+                <div class="card-body">
+                    <div style="height: 250px;">
+                        <canvas id="historicalSentimentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Initial state when no coin is selected -->
+        <div id="sentiment-initial" class="{% if sentiment_data %}d-none{% endif %}">
+            <div class="card">
+                <div class="card-body text-center p-5">
+                    <div class="mb-4">
+                        <i class="fas fa-chart-pie fa-4x text-muted"></i>
+                    </div>
+                    <h3>Select a cryptocurrency to analyze</h3>
+                    <p class="text-muted">
+                        Choose a cryptocurrency from the form on the left to analyze the sentiment based on recent news articles.
+                    </p>
+                    <div class="mt-4">
+                        <a href="{{ url_for('sentiment_analysis', coin='bitcoin') }}" class="btn btn-primary me-2">Analyze Bitcoin</a>
+                        <a href="{{ url_for('sentiment_analysis', coin='ethereum') }}" class="btn btn-outline-primary me-2">Analyze Ethereum</a>
+                        <a href="{{ url_for('sentiment_analysis', coin='cardano') }}" class="btn btn-outline-primary">Analyze Cardano</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/sentiment.js') }}"></script>
+{% endblock %}
