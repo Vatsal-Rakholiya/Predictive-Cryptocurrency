@@ -4,7 +4,8 @@
 
 Visionx Ai Beginners is a comprehensive cryptocurrency analytics platform built with Python Flask that provides real-time market data, advanced sentiment analysis, and machine learning-based price predictions. The application is designed to help cryptocurrency investors and enthusiasts make more informed decisions by combining multiple data sources with advanced analytics techniques.
 
-![Visionx Ai Beginners Dashboard](https://via.placeholder.com/1200x600?text=Visionx+Ai+Beginners+Cryptocurrency+Dashboard)
+![Visionx Ai Beginners Dashboard]![image](https://github.com/user-attachments/assets/55754078-7586-471f-9ad1-65c4013d3c0d)
+
 
 ## Key Features
 
