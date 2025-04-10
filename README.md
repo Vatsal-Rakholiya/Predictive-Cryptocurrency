@@ -88,14 +88,33 @@ export SECRET_KEY="your-secret-key"
 export NEWS_API_KEY="your-newsapi-key"
 ```
 
-5. Initialize the database:
+5. For Initialize the database:
+1. Install PostgreSQL if not already installed:
+   - Windows: Download and install from https://www.postgresql.org/download/windows/
+   - macOS: `brew install postgresql`
+   - Linux: `sudo apt install postgresql postgresql-contrib`
+
+2. Create a database and user:
+
 ```bash
-flask db upgrade
+sudo -u postgres psql
+
+# In PostgreSQL prompt, run:
+CREATE DATABASE visionx_crypto;
+CREATE USER visionx_user WITH ENCRYPTED PASSWORD 'your_secure_password';
+GRANT ALL PRIVILEGES ON DATABASE visionx_crypto TO visionx_user;
+\q
 ```
 
 6. Run the application:
 ```bash
-flask run
+python main.py
+```
+
+Or if you prefer to use Gunicorn (recommended for production):
+
+```bash
+gunicorn --bind 0.0.0.0:5000 --workers 4 main:app
 ```
 
 The application will be available at http://localhost:5000
